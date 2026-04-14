@@ -20,6 +20,11 @@ public abstract class MixinProtectionEnchantment extends Enchantment {
 
     @Inject(method = "differs", at = @At("HEAD"), cancellable = true)
     public void isCompatible1140(Enchantment other, CallbackInfoReturnable<Boolean> ci) {
+        try {
+            Class.forName("net.earthcomputer.multiconnect.api.MultiConnectAPI");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
         int protocolVersion = MultiConnectAPI.instance().getProtocolVersion();
         if (protocolVersion < Protocols.V1_14 || protocolVersion > Protocols.V1_14_2)
             return;

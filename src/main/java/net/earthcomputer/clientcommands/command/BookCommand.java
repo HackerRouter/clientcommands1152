@@ -71,7 +71,6 @@ public class BookCommand {
     private static int regenChunk(CommandSource source) throws CommandSyntaxException {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
 
-        // 检查手持是否为书与笔
         ItemStack heldItem = null;
         if (player != null) {
             heldItem = player.getMainHandStack();

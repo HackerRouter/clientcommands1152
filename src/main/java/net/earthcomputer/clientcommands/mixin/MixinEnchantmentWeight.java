@@ -13,6 +13,11 @@ public class MixinEnchantmentWeight {
 
     @Inject(method = "getWeight", at = @At("HEAD"), cancellable = true)
     public void injectGetWeight(CallbackInfoReturnable<Integer> ci) {
+        try {
+            Class.forName("net.earthcomputer.multiconnect.api.MultiConnectAPI");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
         int protocolVersion = MultiConnectAPI.instance().getProtocolVersion();
         if (protocolVersion >= Protocols.V1_14 && protocolVersion <= Protocols.V1_14_2) {
             int ret;

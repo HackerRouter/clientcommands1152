@@ -22,6 +22,11 @@ public class MixinEnchantmentHelper {
 
     @Inject(method = "getEnchantments(Ljava/util/Random;Lnet/minecraft/item/ItemStack;IZ)Ljava/util/List;", at = @At("HEAD"), cancellable = true)
     private static void getEnchantments1140(Random rand, ItemStack stack, int level, boolean allowTreasure, CallbackInfoReturnable<List<InfoEnchantment>> ci) {
+        try {
+            Class.forName("net.earthcomputer.multiconnect.api.MultiConnectAPI");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
         int protocolVersion = MultiConnectAPI.instance().getProtocolVersion();
         if (protocolVersion < Protocols.V1_14 || protocolVersion > Protocols.V1_14_2)
             return;
