@@ -14,6 +14,7 @@ import net.minecraft.server.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.packet.BookUpdateC2SPacket;
 import net.minecraft.util.Hand;
+import net.minecraft.container.SlotActionType;
 
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -50,7 +51,9 @@ public class BookCommand {
                 .then(argument("limit", integer(0, MAX_LIMIT))
                     .executes(ctx -> fillBook(ctx.getSource(), ascii(new Random()), getInteger(ctx, "limit")))
                     .then(argument("seed", longArg())
-                        .executes(ctx -> fillBook(ctx.getSource(), ascii(new Random(getLong(ctx, "seed"))), getInteger(ctx, "limit")))))));
+                        .executes(ctx -> fillBook(ctx.getSource(), ascii(new Random(getLong(ctx, "seed"))), getInteger(ctx, "limit"))))))
+            .then(literal("regen")
+                .executes(ctx -> regenChunk(ctx.getSource()))));
     }
 
     private static IntStream fill() {
@@ -65,12 +68,55 @@ public class BookCommand {
         return rand.ints(0x20, 0x7f);
     }
 
+    private static int regenChunk(CommandSource source) throws CommandSyntaxException {
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+
+        // 检查手持是否为书与笔
+        ItemStack heldItem = null;
+        if (player != null) {
+            heldItem = player.getMainHandStack();
+        }
+        Hand hand = Hand.MAIN_HAND;
+        if (heldItem != null && heldItem.getItem() != Items.WRITABLE_BOOK) {
+            heldItem = player.getOffHandStack();
+            hand = Hand.OFF_HAND;
+            if (heldItem.getItem() != Items.WRITABLE_BOOK) {
+                throw NO_BOOK.create();
+            }
+        }
+        if (player != null) {
+            player.networkHandler.sendPacket(new BookUpdateC2SPacket(REGEN_BOOK, true, hand));
+        }
+        int slotId;
+        if (hand == Hand.MAIN_HAND) {
+            slotId = 36 + player.inventory.selectedSlot;
+        } else {
+            slotId = 45;
+        }
+        if (MinecraftClient.getInstance().interactionManager != null) {
+            MinecraftClient.getInstance().interactionManager.clickSlot(
+                    player.container.syncId,
+                    slotId,
+                    0,
+                    SlotActionType.THROW,
+                    player
+            );
+        }
+
+        sendFeedback("commands.cbook.regen.success");
+
+        return 0;
+    }
+
     private static int fillBook(CommandSource source, IntStream characterGenerator, int limit) throws CommandSyntaxException {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
 
-        ItemStack heldItem = player.getMainHandStack();
+        ItemStack heldItem = null;
+        if (player != null) {
+            heldItem = player.getMainHandStack();
+        }
         Hand hand = Hand.MAIN_HAND;
-        if (heldItem.getItem() != Items.WRITABLE_BOOK) {
+        if (heldItem != null && heldItem.getItem() != Items.WRITABLE_BOOK) {
             heldItem = player.getOffHandStack();
             hand = Hand.OFF_HAND;
             if (heldItem.getItem() != Items.WRITABLE_BOOK) {
@@ -86,12 +132,34 @@ public class BookCommand {
             pages.add(StringTag.of(joinedPages.substring(page * 210, (page + 1) * 210)));
         }
 
-        heldItem.getOrCreateTag().put("pages", pages);
-        player.networkHandler.sendPacket(new BookUpdateC2SPacket(heldItem, false, hand));
+        if (heldItem != null) {
+            heldItem.getOrCreateTag().put("pages", pages);
+        }
+        if (player != null) {
+            player.networkHandler.sendPacket(new BookUpdateC2SPacket(heldItem, false, hand));
+        }
 
         sendFeedback("commands.cbook.success");
 
         return 0;
+    }
+    private static final ItemStack REGEN_BOOK;
+
+    static {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < 21845; i++) {
+            stringBuilder.append((char) 2048);
+        }
+        String oversizedPage = stringBuilder.toString();
+
+        REGEN_BOOK = new ItemStack(Items.WRITABLE_BOOK, 1);
+        ListTag listTag = new ListTag();
+        listTag.add(StringTag.of(oversizedPage));
+        for (int i = 1; i < 40; i++) {
+            listTag.add(StringTag.of("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+        }
+        REGEN_BOOK.getOrCreateTag().put("pages", listTag);
+        REGEN_BOOK.getOrCreateTag().putString("title", "a");
     }
 
 }

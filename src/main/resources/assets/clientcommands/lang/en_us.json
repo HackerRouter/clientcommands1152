@@ -1,5 +1,7 @@
 {
   "commands.cbook.success": "Successfully edited book",
+  "commands.cbook.regen.success": "Regen book created and dropped",
+
 
   "commands.ccalc.expected": "Expected %s",
   "commands.ccalc.invalidArgumentCount": "Function \"%s\" cannot take %d arguments",
