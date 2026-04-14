@@ -34,9 +34,9 @@ public class BookCommand {
     private static final int DEFAULT_LIMIT = 50;
 
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
-        if (MultiVersionCompat.INSTANCE.getProtocolVersion() >= MultiVersionCompat.V1_15) {
-            return; // chunk savestate fixed in 1.15
-        }
+        //if (MultiVersionCompat.INSTANCE.getProtocolVersion() >= MultiVersionCompat.V1_15) {
+        //return; // chunk savestate fixed in 1.15
+        //}
 
         dispatcher.register(literal("cbook")
                 .then(literal("fill")
