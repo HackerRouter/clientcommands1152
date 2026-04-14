@@ -5,7 +5,9 @@ build/
 out/
 
 # idea
-
+META-INF/
+libs/
+net/
 .idea/
 *.iml
 *.ipr
