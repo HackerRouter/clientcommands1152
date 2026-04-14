@@ -1,4 +1,15 @@
-# clientcommands
+# clientcommands1152
+
+Specially modified for 1.15.2.
+
+I have no idea why I decided to backport mods.
+
+But since I'm one of the last players insisting on 1.15.2.
+
+So yeah, why not?
+
+---
+
 Adds several useful client-side commands to Minecraft
 
 ## Installation
